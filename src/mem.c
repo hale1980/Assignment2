@@ -145,8 +145,8 @@ addr_t alloc_mem(uint32_t size, struct pcb_t * proc) {
 
 		addr_t address = ret_mem;
 		int idx = 0;
-		int segIndex = -1;
-		int pageIndex = -1;
+		addr_t segIndex = -1;
+		addr_t pageIndex = -1;
 		int idx_prev = -1;
 
 		for (int i = 0; i < NUM_PAGES ; i++ ) {
@@ -160,7 +160,8 @@ addr_t alloc_mem(uint32_t size, struct pcb_t * proc) {
 				
 				idx_prev = i;
 				segIndex = get_first_lv(address);
-
+				
+				// Add entries to the seg_table and page_tables
 				if (proc->seg_table->table[segIndex].pages == NULL) {
 					proc->seg_table->table[segIndex].pages = malloc(sizeof(struct page_table_t));
 					proc->seg_table->table[segIndex].pages->size = 0;
@@ -204,7 +205,7 @@ int free_mem(addr_t address, struct pcb_t * proc) {
 	if(translate(address,&physical_addr,proc)){	// check address is valid and get physical_addr
 		addr_t physical_page=physical_addr>>OFFSET_LEN;
 
-		while(physical_page!=-1){
+		while(physical_page!=-1){	// check if reaching the last frame
 			_mem_stat[physical_page].proc=0;
 			addr_t segIndex = get_first_lv(virtual_addr);
 			for (i = 0; i < proc->seg_table->table[segIndex].pages->size; i++) 
